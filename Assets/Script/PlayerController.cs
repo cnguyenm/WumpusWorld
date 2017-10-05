@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// This script is used for user.
+/// User can control "player" and play game
+/// </summary>
 public class PlayerController : MonoBehaviour {
 
     public float velocity;
