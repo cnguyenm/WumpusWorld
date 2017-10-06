@@ -14,6 +14,7 @@ public class CaveGenerator : MonoBehaviour {
     public GameObject fenceHorPrefab; // horizontal fence
     public GameObject fenceVerPrefab; // vertical fence
     public GameObject pitPrefab;
+    public GameObject goldPrefab;
     public Wumpus wumpusPrefab;
     
 
@@ -49,8 +50,9 @@ public class CaveGenerator : MonoBehaviour {
     private void GenerateCavePhysicsWorld()
     {
   
-        // start position
-        Vector3 startPos = new Vector3(0, 0, 0);
+        // variables
+        Vector3 pos;
+        float distance = caveStats.roomSize + caveStats.hallLength;
 
         // create empty obj "Environment"
         environment = new GameObject("Environment");
@@ -58,15 +60,75 @@ public class CaveGenerator : MonoBehaviour {
 
 
         // test
-        Room room = MakeRoom(startPos);
-        MakeFence(room, room.leftPos.position, FenceType.Vertical);
-        MakeFence(room, room.upPos.position, FenceType.Horizontal);
+        //Room room = MakeRoom(startPos);
+        //MakeFence(room, room.leftPos.position, FenceType.Vertical);
+        //MakeFence(room, room.upPos.position, FenceType.Horizontal);
 
-        MakeHallWay(room.rightPos);
-        MakeHallWay(room.downPos);
+        //MakeHallWay(room.rightPos);
+        //MakeHallWay(room.downPos);
 
-        MakePit(room);
-      
+        //MakePit(room);
+
+        Room room;
+        
+        // generate cave
+        // remember, in WumpusWorld, the cave board is
+        // [1,0], [1,1]
+        // [0,0], [1,0]
+        for (int row = 0; row < caveStats.boardSize; row++)
+        {
+            for (int col = 0; col < caveStats.boardSize; col++)
+            {
+                // get pos
+                pos = new Vector3(col * distance, 0, row * distance);
+
+                // create room
+                room = MakeRoom(pos);
+
+                // put stuff in room
+                FillRoomContent(room, row, col);                
+            }
+        }
+
+
+
+
+    }
+
+
+    
+
+    /// <summary>
+    /// Put Pit, Gold, Wumpus in the current room
+    /// </summary>
+    /// <param name="room">current room</param>
+    /// <param name="row">room row</param>
+    /// <param name="col">room col</param>
+    private void FillRoomContent(Room room, int row, int col)
+    {
+        // get the type
+        Room.Type type = (Room.Type)cave[row, col];
+
+        // put stuff in
+        switch (type)
+        {
+            // pit
+            case Room.Type.Pit:
+                MakePit(room);
+                break;
+
+            // gold
+            case Room.Type.Gold:
+                MakeGold(room);
+                break;
+
+            // wumpus
+            case Room.Type.Wumpus:
+                MakeWumpus(room);
+                break;
+
+            // safe, leave it there
+        }
     }
 
     /// <summary>
@@ -107,6 +169,21 @@ public class CaveGenerator : MonoBehaviour {
             room.transform);
 
         return wumpus;
+    }
+
+    /// <summary>
+    /// Create an instance of gold prefab
+    /// </summary>
+    /// <param name="room">Room to put gold</param>
+    private void MakeGold(Room room)
+    {
+        if (room == null)
+            return;
+
+        Instantiate(goldPrefab,
+            room.transform.position,
+            Quaternion.identity,
+            room.transform);
     }
 
     /// <summary>
@@ -201,7 +278,7 @@ public class CaveGenerator : MonoBehaviour {
                 // leave 1st room for player
                 if (row == 0 && col == 0)
                 {
-                    cave[row, col] = (int)Room.type.Safe;
+                    cave[row, col] = (int)Room.Type.Safe;
                     continue;
                 }
 
@@ -210,11 +287,11 @@ public class CaveGenerator : MonoBehaviour {
                 random = Random.Range(0, 1f);
                 if (random <= caveStats.pitProb)
                 {
-                    cave[row, col] = (int)Room.type.Pit;
+                    cave[row, col] = (int)Room.Type.Pit;
                 }
                 else
                 {
-                    cave[row, col] = (int)Room.type.Safe;
+                    cave[row, col] = (int)Room.Type.Safe;
                 }
             }
         }
@@ -223,15 +300,26 @@ public class CaveGenerator : MonoBehaviour {
         // put wumpus in
         x = Random.Range(1, caveStats.boardSize); //leave 1 room for player
         z = Random.Range(1, caveStats.boardSize);
-        cave[x, z] = (int)Room.type.Wumpus;
+        cave[x, z] = (int)Room.Type.Wumpus;
 
         // put gold in
         x = Random.Range(1, caveStats.boardSize); //leave 1 room for player
         z = Random.Range(1, caveStats.boardSize);
-        cave[x, z] = (int)Room.type.Gold;
+        cave[x, z] = (int)Room.Type.Gold;
     }
 
-
+    /// <summary>
+    /// Check if certain cell is a valid location on caveBoard
+    /// ex: [-1, 2] is invalid
+    /// </summary>
+    /// <param name="row">row</param>
+    /// <param name="col">col</param>
+    /// <returns>True if valid</returns>
+    private bool isValidLocation(int row, int col)
+    {
+        return (row >= 0 && row < caveStats.boardSize
+            && col >= 0 && col < caveStats.boardSize);
+    }
 
     /// <summary>
     /// Used to debug
@@ -245,7 +333,7 @@ public class CaveGenerator : MonoBehaviour {
         {
             for (int col = 0; col < caveStats.boardSize; col++)
             {
-                Room.type type = (Room.type)cave[row, col];
+                Room.Type type = (Room.Type)cave[row, col];
                 message += "[" + type.ToString() + "]";
             }
             print(message);

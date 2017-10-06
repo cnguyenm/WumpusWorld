@@ -10,11 +10,17 @@ public class Room : MonoBehaviour {
     public Transform upPos;
     public Transform downPos;
 
-    public enum type
+    public enum Type
     {
         Safe,
         Pit,
         Gold,
         Wumpus
     }
+
+    // manage the connection of room
+    public bool leftConnect     { get; set; }
+    public bool rightConnect    { get; set; }
+    public bool upConnect       { get; set; }
+    public bool downConnect     { get; set; }
 }
