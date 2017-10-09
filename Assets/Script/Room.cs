@@ -9,6 +9,7 @@ public class Room : MonoBehaviour {
     public Transform rightPos;
     public Transform upPos;
     public Transform downPos;
+    public GameObject floor;
 
     public enum Type
     {
@@ -18,9 +19,20 @@ public class Room : MonoBehaviour {
         Wumpus
     }
 
+    public enum Direction
+    {
+        Left,
+        Right, 
+        Up, 
+        Down
+    }
+
     // manage the connection of room
     public bool leftConnect     { get; set; }
     public bool rightConnect    { get; set; }
     public bool upConnect       { get; set; }
     public bool downConnect     { get; set; }
+
+    public int row { get; set; }    // current row of this room
+    public int col { get; set; }    // current collumn of this room
 }
