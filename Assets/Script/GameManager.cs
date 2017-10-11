@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour {
         cameraController.player = player.gameObject; // set camera to follow player
 
         string[] percepts = caveGenerator.GetCaveInfluence(curRoom.row, curRoom.col);
-        Debug.Log(percepts);
+        PrintPercepts(percepts);
     }
 
   
@@ -51,10 +51,29 @@ public class GameManager : MonoBehaviour {
 
         // inform player
         string[] percepts = caveGenerator.GetCaveInfluence(curRoom.row, curRoom.col);
-        Debug.Log(percepts);
+        PrintPercepts(percepts);
     }
     
+    public void PrintPercepts(string[] percepts)
+    {
+        if (percepts == null)
+        {
+            Debug.Log("Percepts: NULL");
+            return;
+        }
 
+        string result = "[ ";
+        foreach(string p in percepts)
+        {
+            if (p == null)
+                result += "NULL" + " , ";
+            else
+                result += p + ",";
+        }
+
+        result += "]";
+        Debug.Log(result);
+    }
    
 
 }

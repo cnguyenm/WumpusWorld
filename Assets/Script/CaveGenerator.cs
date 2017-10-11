@@ -539,6 +539,7 @@ public class CaveGenerator : MonoBehaviour {
 
         // construct result
         string[] result = new string[5];
+        
 
         // check 4 direction
         GetRoomInfluence(row    , col - 1, result);
@@ -563,6 +564,12 @@ public class CaveGenerator : MonoBehaviour {
             return;
 
         // get room
+        if (cave == null)
+        {
+            Debug.Log("Cave dataset is NULL");
+            return;
+        }
+
         Room.Type roomType = (Room.Type) cave[row, col];
         int index;
 
