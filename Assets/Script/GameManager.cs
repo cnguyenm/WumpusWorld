@@ -22,14 +22,37 @@ public class GameManager : MonoBehaviour {
         // generate player
         player = caveGenerator.GeneratePlayer();
         cameraController.player = player.gameObject; // set camera to follow player
-	}
 
+        string[] percepts = caveGenerator.GetCaveInfluence(curRoom.row, curRoom.col);
+        Debug.Log(percepts);
+    }
+
+  
 	
 	// Update is called once per frame
 	void Update () {
 		
 	}
 
+
+    /// <summary>
+    /// Switch current active room
+    /// Inform player of receive sequence
+    /// </summary>
+    /// <param name="newRoom"></param>
+    public void SwitchRoom(Room newRoom)
+    {
+        // switch on/off
+        newRoom.display = true;
+        curRoom.display = false;
+
+        // set new room
+        curRoom = newRoom;
+
+        // inform player
+        string[] percepts = caveGenerator.GetCaveInfluence(curRoom.row, curRoom.col);
+        Debug.Log(percepts);
+    }
     
 
    

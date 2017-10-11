@@ -16,6 +16,18 @@ public class PlayerController : MonoBehaviour {
     private const string IS_WALKING = "isWalking";
     private const string TRIGGER_ATTACK = "triggerAttack";
 
+    /// <summary>
+    /// To easy to keep track of array of percepts
+    /// </summary>
+    public enum Percept
+    {
+        Stench  = 0,
+        Breeze  = 1,
+        Glitter = 2,
+        Bump    = 3, // tough to implement
+        Scream  = 4 
+    }
+
 	// Use this for initialization
 	void Start () {
 

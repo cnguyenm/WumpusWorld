@@ -22,12 +22,12 @@ public class CaveGenerator : MonoBehaviour {
     // stats
     public CaveStats caveStats;
 
-    // cave dataset
-    public int[,] cave { get; private set; }
+    
+    public int[,] cave { get; private set; } // array of cave, or room as dataset
 
     // environment: clear everything easy
     private GameObject environment;
-    private Room[,] rooms;
+    private Room[,] rooms;  // array of real-world room
     private GameManager gameManager;
 
     private enum FenceType
@@ -37,7 +37,7 @@ public class CaveGenerator : MonoBehaviour {
     }
 
 
-    private void Start()
+    private void Awake()
     {
         gameManager = GetComponent<GameManager>();
     }
@@ -46,6 +46,10 @@ public class CaveGenerator : MonoBehaviour {
     #region Cave Generation
 
 
+    /// <summary>
+    /// Generate cave dataset + realworld
+    /// Should be the first function to call
+    /// </summary>
     public void GenerateCave()
     {
         GenerateCaveDatabase();
@@ -62,6 +66,7 @@ public class CaveGenerator : MonoBehaviour {
         return GeneratePlayer(0, 0);
     }
 
+
     /// <summary>
     /// Put player in rooms[row, col]
     /// </summary>
@@ -70,6 +75,11 @@ public class CaveGenerator : MonoBehaviour {
     private PlayerController GeneratePlayer(int row, int col)
     {
         // set room
+        if (gameManager == null)
+        {
+            Debug.Log("Game manager null");
+            return null;
+        }
         gameManager.curRoom = rooms[row, col];
 
         // init player
@@ -114,12 +124,21 @@ public class CaveGenerator : MonoBehaviour {
                 room = MakeRoom(pos);
                 room.row = row;
                 room.col = col;
+                room.gameManager = gameManager;
 
                 // put stuff in room
                 FillRoomContent(room, row, col);
 
                 // add room to array
                 rooms[row, col] = room;
+
+                // not allow player to see
+                // prevent cheating
+                // set every room except [0,0] to false
+                if (row != 0 || col != 0)
+                {
+                    room.display = false;
+                }
             }
         }
 
@@ -319,7 +338,7 @@ public class CaveGenerator : MonoBehaviour {
         Wumpus wumpus = Instantiate<Wumpus>(wumpusPrefab,
             room.transform.position + new Vector3(0, 1, 0),
             Quaternion.Euler(0, 180, 0),
-            room.transform);
+            room.roomObject.transform);
 
         return wumpus;
     }
@@ -336,7 +355,7 @@ public class CaveGenerator : MonoBehaviour {
         Instantiate(goldPrefab,
             room.transform.position,
             Quaternion.identity,
-            room.transform);
+            room.roomObject.transform);
     }
 
     /// <summary>
@@ -375,7 +394,7 @@ public class CaveGenerator : MonoBehaviour {
         Instantiate(fenceUse,
             position,
             Quaternion.identity,
-            room.transform);
+            room.roomObject.transform);
     }
 
     /// <summary>
@@ -414,7 +433,7 @@ public class CaveGenerator : MonoBehaviour {
         Instantiate(pitPrefab,
             room.transform.position,
             Quaternion.identity,
-            room.transform);
+            room.roomObject.transform);
     }
 
 
@@ -500,8 +519,84 @@ public class CaveGenerator : MonoBehaviour {
         }
     }
 
-#endregion
+    #endregion
+
+    #region PlayerInteract
 
 
+    /// <summary>
+    /// Get simple cave influence
+    /// Have not implemented Bump, Scream yet
+    /// </summary>
+    /// <param name="row">row where player is</param>
+    /// <param name="col">col where player is</param>
+    /// <returns>array of sequence percepts</returns>
+    public string[] GetCaveInfluence(int row, int col)
+    {
+        // check valid
+        if (!isValidLocation(row, col))
+            return null;
+
+        // construct result
+        string[] result = new string[5];
+
+        // check 4 direction
+        GetRoomInfluence(row    , col - 1, result);
+        GetRoomInfluence(row    , col + 1, result);
+        GetRoomInfluence(row + 1, col    , result);
+        GetRoomInfluence(row - 1, col - 1, result);
+
+        // return
+        return result;
+    }
+
+    /// <summary>
+    /// Get influence of a particular room
+    /// </summary>
+    /// <param name="row">row</param>
+    /// <param name="col">col</param>
+    /// <returns>string like: null, "Stench", "Glitter", "Breeze"</returns>
+    private void GetRoomInfluence(int row, int col, string[] result)
+    {
+        // check valid
+        if (!isValidLocation(row, col))
+            return;
+
+        // get room
+        Room.Type roomType = (Room.Type) cave[row, col];
+        int index;
+
+        // safe
+        if (roomType == Room.Type.Safe)
+        {
+            return;
+        }
+            
+        // pit
+        if (roomType == Room.Type.Pit)
+        {
+            index = (int)PlayerController.Percept.Breeze;
+            result[index] = "Breeze";
+        }
+
+        // gold
+        if (roomType == Room.Type.Gold)
+        {
+            index = (int)PlayerController.Percept.Glitter;
+            result[index] = "Glitter";
+        }
+
+        // wumpus
+        if (roomType == Room.Type.Wumpus)
+        {
+            index = (int)PlayerController.Percept.Stench;
+            result[index] = "Stench";
+        }
+        
+        // bump, scream will be implemented in other functions
+
+    }
+
+    #endregion
 
 }
